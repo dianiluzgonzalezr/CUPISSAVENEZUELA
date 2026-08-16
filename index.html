@@ -3,17 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUPISSA VENEZUELA</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <title>CUPISSA - Catálogo Internacional</title>
+    <!-- Fuentes: Fredoka, Pacifico y Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Pacifico&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Modal de Selección de País (Pantalla Inicial) -->
+    <div id="modal-pais" class="modal-pais-overlay">
+        <div class="modal-pais-content">
+            <div class="logo-modal-container">
+                <img src="cupissa-logo.png.png" alt="CUPISSA Logo" class="logo-real">
+            </div>
+            <h2>Selecciona tu País</h2>
+            <p>Elige tu ubicación para configurar la moneda, métodos de pago y tasas correspondientes:</p>
+            <div class="paises-grid">
+                <button class="btn-pais" onclick="seleccionarPais('CO')">🇨🇴 Colombia</button>
+                <button class="btn-pais" onclick="seleccionarPais('VE')">🇻🇪 Venezuela</button>
+                <button class="btn-pais" onclick="seleccionarPais('MX')">🇲🇽 México</button>
+                <button class="btn-pais" onclick="seleccionarPais('AR')">🇦🇷 Argentina</button>
+                <button class="btn-pais" onclick="seleccionarPais('US')">🇺🇸 Estados Unidos</button>
+            </div>
+        </div>
+    </div>
+
     <header>
-        <div class="logo">CUPISSA VENEZUELA</div>
+        <div class="logo-container">
+            <img src="cupissa-logo.png.png" alt="CUPISSA Logo" class="logo-real">
+        </div>
         
         <div class="buscador-container">
             <input type="text" id="input-buscador" placeholder="🔍 ¿Qué producto estás buscando?" oninput="buscarProductos(this.value)">
+        </div>
+
+        <div class="controles-superiores">
+            <button id="btn-mayorista" class="btn-mayorista-toggle" onclick="toggleModoMayorista()">📦 Activar Modo Mayorista</button>
         </div>
 
         <nav id="menu-categorias" class="categorias-wrapper">
@@ -23,20 +48,22 @@
 
     <main>
         <div class="tasa-bcv-container">
-            <span id="texto-tasa-bcv">Tasa: Bs 771.00</span>
-            <div id="admin-tasa-panel" style="display:none; margin-top:5px;">
-                <input type="number" id="input-nueva-tasa" step="0.01" value="771.00" style="width:100px; padding:4px;">
-                <button onclick="actualizarTasaBCV()" class="btn-cat-nueva" style="padding:4px 10px; height:auto;">Actualizar Tasa</button>
+            <span id="texto-tasa-local">Configurando moneda y tasa...</span>
+            <div id="admin-tasa-panel" style="display:none; margin-top:8px;">
+                <input type="number" id="input-nueva-tasa" step="0.01" style="width:140px; padding:6px; border-radius:8px; border:2px solid #e0e0e0;" placeholder="Tasa VES (Bolívares)">
+                <button onclick="actualizarTasaVenezuela()" class="btn-cat-nueva" style="padding:6px 14px; height:auto;">Actualizar Tasa VES</button>
             </div>
         </div>
         <div id="contenedor-productos" class="grid-productos"></div>
     </main>
 
     <footer>
-        <div class="footer-logo">CUPISSA VENEZUELA</div>
+        <div class="logo-container">
+            <img src="cupissa-logo.png.png" alt="CUPISSA Logo" class="logo-real footer-logo-img">
+        </div>
         <div class="footer-info">
-            <p>📞 +58 424 289 72 81</p>
-            <p>💳 Métodos de Pago: PAGO MÓVIL | DIVISAS | BOLÍVARES</p>
+            <p id="footer-telefono">📞 Cargando contacto...</p>
+            <p id="footer-pagos">💳 Métodos de Pago: Cargando...</p>
         </div>
         <button id="btn-admin" onclick="abrirModal()">⚙️</button>
     </footer>
@@ -53,14 +80,9 @@
         </div>
         <div id="lista-carrito-items"></div>
         <div class="carrito-footer">
-            <!-- Selector de Método de Pago -->
             <div class="pago-selector-container">
                 <label for="metodo-pago-select"><strong>Método de pago preferido:</strong></label>
-                <select id="metodo-pago-select">
-                    <option value="Pago Móvil">Pago Móvil</option>
-                    <option value="Divisas">Divisas</option>
-                    <option value="Bolívares">Bolívares</option>
-                </select>
+                <select id="metodo-pago-select"></select>
             </div>
             <button onclick="enviarPedidoWhatsApp()" class="btn-whatsapp">Enviar pedido por WhatsApp</button>
         </div>
@@ -73,14 +95,16 @@
             <h2 id="modal-titulo">Agregar Producto</h2>
             <input type="hidden" id="edit-id">
             <input type="text" id="nuevo-nombre" placeholder="Nombre del producto">
-            <input type="number" id="nuevo-precio" step="0.01" placeholder="Precio en USD ($)">
+            <input type="number" id="nuevo-precio" step="0.01" placeholder="Precio detal en Pesos Colombianos (COP)">
+            <input type="number" id="nuevo-precio-mayorista" step="0.01" placeholder="Precio mayorista en Pesos Colombianos (COP)">
+            <input type="number" id="nuevo-min-mayorista" placeholder="Mínimo unidades mayorista (ej. 6)">
             
             <div class="grupo-categoria">
                 <select id="nuevo-categoria"></select>
                 <button type="button" onclick="crearNuevaCategoria()" class="btn-cat-nueva">Nueva +</button>
             </div>
 
-            <input type="text" id="nueva-subcategoria" placeholder="Subcategoría (opcional)">
+            <input type="text" id="nueva-subcategoria" placeholder="Subcategoría o Temática (opcional)">
             
             <div id="drop-zone">
                 <p>Arrastra una imagen, pega con <b>Ctrl+V</b> o haz clic aquí.</p>
