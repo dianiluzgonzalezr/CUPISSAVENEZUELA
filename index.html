@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CUPISSA VENEZUELA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">CUPISSA VENEZUELA</div>
+        
+        <div class="buscador-container">
+            <input type="text" id="input-buscador" placeholder="🔍 ¿Qué producto estás buscando?" oninput="buscarProductos(this.value)">
+        </div>
+
+        <nav id="menu-categorias" class="categorias-wrapper">
+            <button onclick="filtrarCategoria('Todos')">Todos</button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="tasa-bcv-container">
+            <span id="texto-tasa-bcv">Tasa: Bs 771.00</span>
+            <div id="admin-tasa-panel" style="display:none; margin-top:5px;">
+                <input type="number" id="input-nueva-tasa" step="0.01" value="771.00" style="width:100px; padding:4px;">
+                <button onclick="actualizarTasaBCV()" class="btn-cat-nueva" style="padding:4px 10px; height:auto;">Actualizar Tasa</button>
+            </div>
+        </div>
+        <div id="contenedor-productos" class="grid-productos"></div>
+    </main>
+
+    <footer>
+        <div class="footer-logo">CUPISSA VENEZUELA</div>
+        <div class="footer-info">
+            <p>📞 +58 424 289 72 81</p>
+            <p>💳 Métodos de Pago: PAGO MÓVIL | DIVISAS | BOLÍVARES</p>
+        </div>
+        <button id="btn-admin" onclick="abrirModal()">⚙️</button>
+    </footer>
+
+    <!-- Carrito Flotante y Panel Desplegable -->
+    <div id="carrito-flotante" onclick="togglePanelCarrito()">
+        🛒 <span id="contador-carrito">0</span>
+    </div>
+
+    <div id="panel-carrito" class="panel-carrito">
+        <div class="carrito-header">
+            <h3>Tu Carrito</h3>
+            <span onclick="togglePanelCarrito()" style="cursor:pointer; font-size: 1.5rem;">&times;</span>
+        </div>
+        <div id="lista-carrito-items"></div>
+        <div class="carrito-footer">
+            <!-- Selector de Método de Pago -->
+            <div class="pago-selector-container">
+                <label for="metodo-pago-select"><strong>Método de pago preferido:</strong></label>
+                <select id="metodo-pago-select">
+                    <option value="Pago Móvil">Pago Móvil</option>
+                    <option value="Divisas">Divisas</option>
+                    <option value="Bolívares">Bolívares</option>
+                </select>
+            </div>
+            <button onclick="enviarPedidoWhatsApp()" class="btn-whatsapp">Enviar pedido por WhatsApp</button>
+        </div>
+    </div>
+
+    <!-- Modal de Administración (Agregar / Editar) -->
+    <div id="modal-admin" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2 id="modal-titulo">Agregar Producto</h2>
+            <input type="hidden" id="edit-id">
+            <input type="text" id="nuevo-nombre" placeholder="Nombre del producto">
+            <input type="number" id="nuevo-precio" step="0.01" placeholder="Precio en USD ($)">
+            
+            <div class="grupo-categoria">
+                <select id="nuevo-categoria"></select>
+                <button type="button" onclick="crearNuevaCategoria()" class="btn-cat-nueva">Nueva +</button>
+            </div>
+
+            <input type="text" id="nueva-subcategoria" placeholder="Subcategoría (opcional)">
+            
+            <div id="drop-zone">
+                <p>Arrastra una imagen, pega con <b>Ctrl+V</b> o haz clic aquí.</p>
+                <input type="file" id="file-input" accept="image/*" hidden>
+                <img id="preview-img" style="display:none; max-width:100%; margin-top:10px; border-radius: 8px;">
+            </div>
+
+            <button class="btn-guardar" id="btn-accion-guardar" onclick="guardarProducto()">Guardar Producto</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function verificarAccesoAdmin() {
+                const botonAdmin = document.getElementById("btn-admin");
+                const adminTasaPanel = document.getElementById("admin-tasa-panel");
+                if (window.location.hash === "#admin") {
+                    document.body.classList.add("admin-mode");
+                    if (botonAdmin) botonAdmin.style.display = "block";
+                    if (adminTasaPanel) adminTasaPanel.style.display = "block";
+                } else {
+                    document.body.classList.remove("admin-mode");
+                    if (botonAdmin) botonAdmin.style.display = "none";
+                    if (adminTasaPanel) adminTasaPanel.style.display = "none";
+                }
+            }
+
+            verificarAccesoAdmin();
+            window.addEventListener('hashchange', verificarAccesoAdmin);
+        });
+    </script>
+
+    <div id="toast-container"></div>
+</body>
+</html>
